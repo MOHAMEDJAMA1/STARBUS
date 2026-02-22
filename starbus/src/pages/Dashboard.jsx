@@ -26,25 +26,27 @@ export default function Dashboard() {
                 }
                 setUser(user);
 
-                // Fetch profile
+                // Fetch profile — use maybeSingle() to avoid crash if 0 or 2+ rows
                 const { data: profileData, error: profileError } = await supabase
                     .from('profiles')
                     .select('*')
                     .eq('id', user.id)
-                    .single();
+                    .maybeSingle();
 
                 if (profileError) throw profileError;
-                if (!profileData) throw new Error('Profile data is missing.');
+                if (!profileData) {
+                    throw new Error('Your account profile was not found. Please contact your administrator.');
+                }
 
                 setProfile(profileData);
 
                 // Fetch Branch Name if worker
                 if (profileData.role === 'branch_worker' && profileData.branch_id) {
-                    const { data: branchData, error: branchError } = await supabase
+                    const { data: branchData } = await supabase
                         .from('branches')
                         .select('name')
                         .eq('id', profileData.branch_id)
-                        .single();
+                        .maybeSingle();
 
                     if (branchData) {
                         setBranchName(branchData.name);
