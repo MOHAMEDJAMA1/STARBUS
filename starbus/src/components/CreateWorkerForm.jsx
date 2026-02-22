@@ -33,14 +33,23 @@ export default function CreateWorkerForm() {
                 body: formData
             });
 
-            if (error) throw new Error(error.message || 'Failed to invoke function');
+            if (error) {
+                // Try to extract the real error message from the Edge Function body
+                let realError = error.message;
+                try {
+                    const parsed = JSON.parse(error.context?.body ?? '{}');
+                    if (parsed?.error) realError = parsed.error;
+                } catch (_) { }
+                throw new Error(realError);
+            }
+
             if (data?.error) throw new Error(data.error);
 
             setMessage({ type: 'success', text: 'Worker account created successfully!' });
             setFormData({ email: '', password: '', full_name: '', branch_id: '' });
         } catch (err) {
             console.error(err);
-            setMessage({ type: 'error', text: 'Failed to create user. Ensure Edge Function is deployed. ' + err.message });
+            setMessage({ type: 'error', text: err.message });
         } finally {
             setLoading(false);
         }
