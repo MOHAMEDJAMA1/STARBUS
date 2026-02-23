@@ -28,14 +28,22 @@ export default function CreateWorkerForm() {
         setMessage({ type: '', text: '' });
 
         try {
-            const { data, error } = await supabase.functions.invoke('create-user', {
-                body: formData
+            // Call Edge Function directly via fetch (bypasses session/JWT issues)
+            const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+            const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+            const res = await fetch(`${SUPABASE_URL}/functions/v1/create-user`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'apikey': SUPABASE_ANON_KEY,
+                },
+                body: JSON.stringify(formData),
             });
 
-            // Network/invocation error (function unreachable) — show the real error
-            if (error) throw new Error(error.message || String(error));
+            const data = await res.json();
 
-            // Function-level error (returned in body)
             if (data?.error) throw new Error(data.error);
 
             setMessage({ type: 'success', text: data?.warning || 'Worker account created successfully!' });
