@@ -28,24 +28,17 @@ export default function CreateWorkerForm() {
         setMessage({ type: '', text: '' });
 
         try {
-            // Call Supabase Edge Function to create user
             const { data, error } = await supabase.functions.invoke('create-user', {
                 body: formData
             });
 
-            if (error) {
-                // Try to extract the real error message from the Edge Function body
-                let realError = error.message;
-                try {
-                    const parsed = JSON.parse(error.context?.body ?? '{}');
-                    if (parsed?.error) realError = parsed.error;
-                } catch (_) { }
-                throw new Error(realError);
-            }
+            // Network/invocation error (function unreachable)
+            if (error) throw new Error('Could not reach the server. Please check your connection.');
 
+            // Function-level error (returned in body)
             if (data?.error) throw new Error(data.error);
 
-            setMessage({ type: 'success', text: 'Worker account created successfully!' });
+            setMessage({ type: 'success', text: data?.warning || 'Worker account created successfully!' });
             setFormData({ email: '', password: '', full_name: '', branch_id: '' });
         } catch (err) {
             console.error(err);

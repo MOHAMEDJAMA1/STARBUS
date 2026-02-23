@@ -6,100 +6,75 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Always respond with 200, encode success/error in body
+// so the Supabase JS client doesn't swallow the real error message.
+const respond = (data: object) =>
+    new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+    });
+
 serve(async (req) => {
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders });
     }
 
     try {
-        // Setup Supabase Admin Client (bypasses RLS)
         const supabaseAdmin = createClient(
             Deno.env.get('SUPABASE_URL') ?? '',
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         );
 
-        // Parse request body
-        let body;
-        try {
-            body = await req.json();
-        } catch {
-            return new Response(
-                JSON.stringify({ error: 'Invalid request body' }),
-                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-            );
-        }
+        const body = await req.json().catch(() => null);
+        if (!body) return respond({ error: 'Invalid JSON body.' });
 
         const { email, password, full_name, branch_id } = body;
 
-        // Validate
-        if (!email || !password || !full_name || !branch_id) {
-            return new Response(
-                JSON.stringify({ error: `Missing required fields. Got: email=${!!email}, password=${!!password}, full_name=${!!full_name}, branch_id=${!!branch_id}` }),
-                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-            );
-        }
+        if (!email) return respond({ error: 'Email is required.' });
+        if (!password) return respond({ error: 'Password is required.' });
+        if (!full_name) return respond({ error: 'Full name is required.' });
+        if (!branch_id) return respond({ error: 'You must assign the worker to a branch.' });
+        if (password.length < 6) return respond({ error: 'Password must be at least 6 characters.' });
 
-        if (password.length < 6) {
-            return new Response(
-                JSON.stringify({ error: 'Password must be at least 6 characters.' }),
-                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-            );
-        }
-
-        // Create Auth User
+        // Create auth user
         const { data, error: createError } = await supabaseAdmin.auth.admin.createUser({
             email: email.trim().toLowerCase(),
             password: password,
             email_confirm: true,
-            user_metadata: {
-                full_name: full_name,
-                branch_id: branch_id,
-                role: 'branch_worker'
-            }
+            user_metadata: { full_name, branch_id, role: 'branch_worker' }
         });
 
         if (createError) {
-            return new Response(
-                JSON.stringify({ error: createError.message }),
-                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-            );
+            console.error('createUser error:', createError.message);
+            return respond({ error: createError.message });
         }
 
-        // Ensure profile is created (upsert in case DB trigger already did it)
-        if (data.user) {
+        // Upsert profile (handles cases where DB trigger may have already created it)
+        if (data?.user) {
             const { error: profileError } = await supabaseAdmin
                 .from('profiles')
                 .upsert({
                     id: data.user.id,
                     email: email.trim().toLowerCase(),
-                    full_name: full_name,
-                    branch_id: branch_id,
+                    full_name,
+                    branch_id,
                     role: 'branch_worker'
                 }, { onConflict: 'id' });
 
             if (profileError) {
-                // User was created but profile failed - still partial success
-                console.error('Profile creation failed:', profileError.message);
-                return new Response(
-                    JSON.stringify({
-                        warning: 'User created but profile setup failed: ' + profileError.message,
-                        user: data.user
-                    }),
-                    { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-                );
+                console.error('Profile upsert error:', profileError.message);
+                // User was created in auth, profile failed — still partially ok
+                return respond({
+                    success: true,
+                    warning: 'Worker account created but profile setup had an issue: ' + profileError.message
+                });
             }
         }
 
-        return new Response(
-            JSON.stringify({ success: true, user: data.user }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-        );
+        return respond({ success: true });
 
-    } catch (error) {
-        console.error('Unhandled error:', error);
-        return new Response(
-            JSON.stringify({ error: String(error) }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-        );
+    } catch (err) {
+        console.error('Fatal error:', err);
+        return respond({ error: 'Unexpected server error: ' + String(err) });
     }
 });
