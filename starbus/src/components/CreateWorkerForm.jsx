@@ -32,8 +32,8 @@ export default function CreateWorkerForm() {
                 body: formData
             });
 
-            // Network/invocation error (function unreachable)
-            if (error) throw new Error('Could not reach the server. Please check your connection.');
+            // Network/invocation error (function unreachable) — show the real error
+            if (error) throw new Error(error.message || String(error));
 
             // Function-level error (returned in body)
             if (data?.error) throw new Error(data.error);
