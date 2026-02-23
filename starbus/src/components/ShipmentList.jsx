@@ -85,9 +85,10 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
         };
     }, []);
 
-    const handleMarkAsTaken = async (id) => {
-        if (!confirm('Confirm this package has been picked up?')) return;
+    const [takenError, setTakenError] = useState(null);
 
+    const handleMarkAsTaken = async (id) => {
+        setTakenError(null);
         try {
             const { error } = await supabase
                 .from('shipments')
@@ -98,15 +99,22 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                 .eq('id', id);
 
             if (error) throw error;
-            // fetchShipments(); // Handled by realtime
+            // Realtime will refresh the list automatically
         } catch (error) {
             console.error('Error updating shipment:', error);
-            alert(`Failed to update status: ${error.message || error.error_description || 'Unknown error'}`);
+            setTakenError(`Failed to mark as taken: ${error.message}`);
         }
     };
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden font-sans">
+            {/* Error Banner */}
+            {takenError && (
+                <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-600 flex items-center justify-between">
+                    <span>{takenError}</span>
+                    <button onClick={() => setTakenError(null)} className="text-red-400 hover:text-red-600 font-bold text-lg leading-none">×</button>
+                </div>
+            )}
             {/* Header / Toolbar */}
             <div className="p-6 border-b border-gray-100">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
