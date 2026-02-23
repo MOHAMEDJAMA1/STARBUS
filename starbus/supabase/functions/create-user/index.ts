@@ -1,35 +1,54 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+};
 
 serve(async (req) => {
-    // Handle CORS preflight request
     if (req.method === 'OPTIONS') {
-        return new Response('ok', { headers: corsHeaders })
+        return new Response('ok', { headers: corsHeaders });
     }
 
     try {
-        // 1. Setup Supabase Client
+        // Setup Supabase Admin Client (bypasses RLS)
         const supabaseAdmin = createClient(
             Deno.env.get('SUPABASE_URL') ?? '',
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-        )
+        );
 
-        // 2. Parse request body
-        const { email, password, full_name, branch_id } = await req.json()
-
-        // Validation
-        if (!email || !password || !full_name || !branch_id) {
-            throw new Error("Missing required fields: email, password, full_name, branch_id");
+        // Parse request body
+        let body;
+        try {
+            body = await req.json();
+        } catch {
+            return new Response(
+                JSON.stringify({ error: 'Invalid request body' }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+            );
         }
 
-        // 3. Create User
+        const { email, password, full_name, branch_id } = body;
+
+        // Validate
+        if (!email || !password || !full_name || !branch_id) {
+            return new Response(
+                JSON.stringify({ error: `Missing required fields. Got: email=${!!email}, password=${!!password}, full_name=${!!full_name}, branch_id=${!!branch_id}` }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+            );
+        }
+
+        if (password.length < 6) {
+            return new Response(
+                JSON.stringify({ error: 'Password must be at least 6 characters.' }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+            );
+        }
+
+        // Create Auth User
         const { data, error: createError } = await supabaseAdmin.auth.admin.createUser({
-            email: email,
+            email: email.trim().toLowerCase(),
             password: password,
             email_confirm: true,
             user_metadata: {
@@ -37,52 +56,50 @@ serve(async (req) => {
                 branch_id: branch_id,
                 role: 'branch_worker'
             }
-        })
+        });
 
-        if (createError) throw createError
+        if (createError) {
+            return new Response(
+                JSON.stringify({ error: createError.message }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+            );
+        }
 
-        // 4. Manual Profile Creation (Redundancy check)
-        // The DB trigger *should* do this, but if it fails, this ensures the profile exists.
-        // We use upsert to avoid conflict if the trigger already worked.
+        // Ensure profile is created (upsert in case DB trigger already did it)
         if (data.user) {
             const { error: profileError } = await supabaseAdmin
                 .from('profiles')
                 .upsert({
                     id: data.user.id,
-                    email: email,
+                    email: email.trim().toLowerCase(),
                     full_name: full_name,
                     branch_id: branch_id,
                     role: 'branch_worker'
-                })
+                }, { onConflict: 'id' });
 
             if (profileError) {
-                console.error("Manual profile creation failed:", profileError)
-                // Return error to client so they know it failed
+                // User was created but profile failed - still partial success
+                console.error('Profile creation failed:', profileError.message);
                 return new Response(
-                    JSON.stringify({ error: "User created but profile failed: " + profileError.message }),
-                    {
-                        headers: { ...corsHeaders, "Content-Type": "application/json" },
-                        status: 500
-                    },
-                )
+                    JSON.stringify({
+                        warning: 'User created but profile setup failed: ' + profileError.message,
+                        user: data.user
+                    }),
+                    { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+                );
             }
         }
 
         return new Response(
-            JSON.stringify(data),
-            {
-                headers: { ...corsHeaders, "Content-Type": "application/json" },
-                status: 200
-            },
-        )
+            JSON.stringify({ success: true, user: data.user }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        );
 
     } catch (error) {
+        console.error('Unhandled error:', error);
         return new Response(
-            JSON.stringify({ error: error.message }),
-            {
-                headers: { ...corsHeaders, "Content-Type": "application/json" },
-                status: 400
-            },
-        )
+            JSON.stringify({ error: String(error) }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        );
     }
-})
+});
