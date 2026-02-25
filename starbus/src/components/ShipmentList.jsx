@@ -178,8 +178,11 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                             <button onClick={() => setSelectedShipment(shipment)} className="w-full sm:flex-1 py-2.5 text-xs font-bold border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2">
                                 <Eye size={16} /> View Details
                             </button>
-                            {shipment.status !== 'delivered' && shipment.status !== 'cancelled' && isWorker && String(currentBranchId || '').trim().toLowerCase() === String(shipment.destination_branch_id || '').trim().toLowerCase() && (
-                                <button onClick={() => handleMarkAsTaken(shipment.id)} className="w-full sm:flex-1 py-2.5 text-xs font-bold bg-green-500 hover:bg-green-600 text-white rounded-lg active:scale-95 transition-all flex items-center justify-center gap-2">
+                            {shipment.status !== 'delivered' && shipment.status !== 'cancelled' && isWorker && (
+                                <button
+                                    onClick={() => handleMarkAsTaken(shipment.id)}
+                                    className="w-full sm:flex-1 py-2.5 text-xs font-bold bg-green-500 hover:bg-green-600 text-white rounded-lg active:scale-95 transition-all flex items-center justify-center gap-2"
+                                >
                                     <Check size={16} /> Mark as Taken
                                 </button>
                             )}
@@ -280,7 +283,7 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
 
                                             {/* Mark Taken Button */}
                                             {shipment.status !== 'delivered' && shipment.status !== 'cancelled' ? (
-                                                isWorker && String(currentBranchId || '').trim().toLowerCase() === String(shipment.destination_branch_id || '').trim().toLowerCase() ? (
+                                                isWorker ? (
                                                     <button
                                                         onClick={() => handleMarkAsTaken(shipment.id)}
                                                         className="inline-flex items-center gap-1.5 px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-lg shadow-sm shadow-green-200 transition-all active:scale-95"
@@ -289,7 +292,7 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                                                     </button>
                                                 ) : (
                                                     <span className="text-xs text-gray-400 font-medium hidden">
-                                                        {isWorker ? 'In Transit / NotDest' : 'View Only'}
+                                                        View Only
                                                     </span>
                                                 )
                                             ) : null}

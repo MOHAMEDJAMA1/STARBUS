@@ -115,7 +115,7 @@ export default function AdminDashboard({ activeView }) {
         return (
             <ShipmentList
                 title="System-Wide Shipments"
-                isWorker={false} // Admin Mode
+                isWorker={true} // Admin Mode
             />
         );
     }

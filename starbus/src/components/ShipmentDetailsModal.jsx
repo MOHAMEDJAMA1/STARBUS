@@ -152,8 +152,8 @@ export default function ShipmentDetailsModal({ shipment, onClose, isWorker, curr
 
                 {/* Footer */}
                 <div className="bg-gray-50 border-t border-gray-100 p-4 sm:p-6 flex flex-col sm:flex-row gap-2 sm:gap-3 sm:justify-end shrink-0">
-                    {/* Mark as Taken Button in Modal - Extremely Robust Comparison */}
-                    {shipment.status !== 'delivered' && shipment.status !== 'cancelled' && isWorker && String(currentBranchId || '').trim().toLowerCase() === String(shipment.destination_branch_id || '').trim().toLowerCase() && (
+                    {/* Mark as Taken Button - Visible to all staff/admins for pending shipments */}
+                    {shipment.status !== 'delivered' && shipment.status !== 'cancelled' && isWorker && (
                         <button
                             onClick={async () => {
                                 setLoading(true);
