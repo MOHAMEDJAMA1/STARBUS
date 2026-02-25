@@ -1,6 +1,10 @@
-import { X, Package, MapPin, User, Calendar, Truck, FileText } from 'lucide-react';
+import { useState } from 'react';
+import { X, Package, MapPin, User, Calendar, Truck, FileText, CheckCircle } from 'lucide-react';
 
-export default function ShipmentDetailsModal({ shipment, onClose }) {
+
+export default function ShipmentDetailsModal({ shipment, onClose, isWorker, currentBranchId, onMarkAsTaken }) {
+    const [loading, setLoading] = useState(false);
+
     if (!shipment) return null;
 
     const formatDate = (dateString) => {
@@ -17,21 +21,24 @@ export default function ShipmentDetailsModal({ shipment, onClose }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-scale-up font-sans">
+            <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-scale-up font-sans flex flex-col max-h-[90vh]">
+
 
                 {/* Header */}
-                <div className="bg-gray-50 border-b border-gray-100 p-6 flex justify-between items-start">
+                <div className="bg-gray-50 border-b border-gray-100 p-4 sm:p-6 flex justify-between items-start shrink-0">
                     <div>
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="bg-green-100 text-green-700 p-2 rounded-lg">
-                                <Package size={24} />
+                        <div className="flex items-center gap-3 mb-1 sm:mb-2">
+                            <div className="bg-green-100 text-green-700 p-1.5 sm:p-2 rounded-lg">
+                                <Package size={20} className="sm:hidden" />
+                                <Package size={24} className="hidden sm:block" />
                             </div>
                             <div>
-                                <h2 className="text-xl font-bold text-gray-900 leading-none">Shipment Details</h2>
-                                <p className="text-sm text-gray-500 mt-1 font-mono tracking-wide">{shipment.tracking_number}</p>
+                                <h2 className="text-lg sm:text-xl font-bold text-gray-900 leading-none">Shipment Details</h2>
+                                <p className="text-xs sm:text-sm text-gray-500 mt-1 font-mono tracking-wide">{shipment.tracking_number}</p>
                             </div>
                         </div>
                     </div>
+
                     <button
                         onClick={onClose}
                         className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full transition-colors"
@@ -41,16 +48,16 @@ export default function ShipmentDetailsModal({ shipment, onClose }) {
                 </div>
 
                 {/* Body */}
-                <div className="p-8 max-h-[70vh] overflow-y-auto">
+                <div className="p-4 sm:p-8 overflow-y-auto flex-1">
 
                     {/* Status Banner */}
-                    <div className="mb-8 flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                    <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 gap-4">
                         <div className="flex flex-col">
-                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Current Status</span>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Current Status</span>
                             <StatusBadge status={shipment.status} />
                         </div>
-                        <div className="text-right">
-                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Last Updated</span>
+                        <div className="sm:text-right">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Last Updated</span>
                             <p className="text-sm font-medium text-gray-900">
                                 {shipment.status === 'delivered' ? formatDate(shipment.delivered_at) : formatDate(shipment.created_at)}
                             </p>
@@ -61,22 +68,22 @@ export default function ShipmentDetailsModal({ shipment, onClose }) {
 
                         {/* Route Info */}
                         <div className="col-span-1 md:col-span-2">
-                            <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                <MapPin size={16} className="text-gray-400" /> Route Information
+                            <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                <MapPin size={14} /> Route Information
                             </h3>
-                            <div className="flex items-center justify-between bg-white border border-gray-200 rounded-xl p-5 relative overflow-hidden">
-                                <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-100 -z-10 -translate-y-1/2"></div>
+                            <div className="flex flex-col sm:flex-row items-center justify-between bg-white border border-gray-200 rounded-xl p-4 sm:p-5 relative overflow-hidden gap-6 sm:gap-0">
+                                <div className="absolute hidden sm:block top-1/2 left-0 w-full h-0.5 bg-gray-100 -z-10 -translate-y-1/2"></div>
 
-                                <div className="bg-white pr-4 relative z-10">
-                                    <p className="text-xs text-gray-500 mb-1">Origin</p>
-                                    <p className="font-bold text-lg text-gray-900">{shipment.origin_branch?.name || 'Unknown'}</p>
+                                <div className="bg-white sm:pr-4 relative z-10 w-full sm:w-auto text-center sm:text-left">
+                                    <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Origin</p>
+                                    <p className="font-bold text-base sm:text-lg text-gray-900">{shipment.origin_branch?.name || 'Unknown'}</p>
                                 </div>
-                                <div className="bg-white px-2 relative z-10 text-gray-400">
-                                    <Truck size={20} />
+                                <div className="bg-white px-3 relative z-10 text-gray-300 transform sm:rotate-0 rotate-90">
+                                    <Truck size={24} />
                                 </div>
-                                <div className="bg-white pl-4 relative z-10 text-right">
-                                    <p className="text-xs text-gray-500 mb-1">Destination</p>
-                                    <p className="font-bold text-lg text-gray-900">{shipment.destination_branch?.name || 'Unknown'}</p>
+                                <div className="bg-white sm:pl-4 relative z-10 w-full sm:w-auto text-center sm:text-right">
+                                    <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Destination</p>
+                                    <p className="font-bold text-base sm:text-lg text-gray-900">{shipment.destination_branch?.name || 'Unknown'}</p>
                                 </div>
                             </div>
                         </div>
@@ -117,23 +124,22 @@ export default function ShipmentDetailsModal({ shipment, onClose }) {
 
                         {/* Additional Info */}
                         <div className="col-span-1 md:col-span-2">
-                            <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                <FileText size={16} className="text-gray-400" /> Details
+                            <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                <FileText size={14} /> Logistics Details
                             </h3>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                    <p className="text-xs text-gray-500 mb-1">Registered By</p>
-                                    {/* This would require joining with profiles or storing name, currently just ID or simplified */}
-                                    <p className="font-medium text-gray-900 truncate">Staff ID: {shipment.received_by?.slice(0, 8)}...</p>
+                                    <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Registered By</p>
+                                    <p className="text-sm font-medium text-gray-900 truncate">Staff ID: {shipment.received_by?.slice(0, 8)}...</p>
                                 </div>
                                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                    <p className="text-xs text-gray-500 mb-1">Created At</p>
-                                    <p className="font-medium text-gray-900">{formatDate(shipment.created_at)}</p>
+                                    <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Created At</p>
+                                    <p className="text-sm font-medium text-gray-900">{formatDate(shipment.created_at)}</p>
                                 </div>
                                 {shipment.description && (
-                                    <div className="col-span-2 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                        <p className="text-xs text-gray-500 mb-1">Description / Notes</p>
-                                        <p className="font-medium text-gray-900">{shipment.description}</p>
+                                    <div className="col-span-1 sm:col-span-2 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                        <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Description / Notes</p>
+                                        <p className="text-sm font-medium text-gray-900 leading-relaxed">{shipment.description}</p>
                                     </div>
                                 )}
                             </div>
@@ -143,10 +149,26 @@ export default function ShipmentDetailsModal({ shipment, onClose }) {
                 </div>
 
                 {/* Footer */}
-                <div className="bg-gray-50 border-t border-gray-100 p-6 flex justify-end">
+                <div className="bg-gray-50 border-t border-gray-100 p-4 sm:p-6 flex flex-col sm:flex-row gap-3 sm:justify-end shrink-0">
+                    {/* Mark as Taken Button in Modal */}
+                    {shipment.status !== 'delivered' && shipment.status !== 'cancelled' && isWorker && currentBranchId === shipment.destination_branch_id && (
+                        <button
+                            onClick={async () => {
+                                setLoading(true);
+                                await onMarkAsTaken(shipment.id);
+                                setLoading(false);
+                                onClose();
+                            }}
+                            disabled={loading}
+                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-lg shadow-green-200 transition-all active:scale-95 disabled:opacity-70"
+                        >
+                            <CheckCircle size={18} />
+                            {loading ? 'Updating...' : 'Mark as Taken'}
+                        </button>
+                    )}
                     <button
                         onClick={onClose}
-                        className="px-6 py-2.5 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-100 transition-colors"
+                        className="w-full sm:w-auto px-6 py-3 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-100 transition-colors"
                     >
                         Close
                     </button>

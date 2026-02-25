@@ -176,7 +176,7 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                         </div>
                         <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
                             <button onClick={() => setSelectedShipment(shipment)} className="flex-1 py-2 text-xs font-bold border border-gray-200 rounded-lg hover:bg-gray-50">View Details</button>
-                            {shipment.status !== 'delivered' && isWorker && currentBranchId === shipment.destination_branch_id && (
+                            {shipment.status !== 'delivered' && shipment.status !== 'cancelled' && isWorker && String(currentBranchId) === String(shipment.destination_branch_id) && (
                                 <button onClick={() => handleMarkAsTaken(shipment.id)} className="flex-1 py-2 text-xs font-bold bg-green-500 hover:bg-green-600 text-white rounded-lg active:scale-95 transition-all">Mark as Taken</button>
                             )}
                         </div>
@@ -276,7 +276,7 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
 
                                             {/* Mark Taken Button */}
                                             {shipment.status !== 'delivered' && shipment.status !== 'cancelled' ? (
-                                                isWorker && currentBranchId === shipment.destination_branch_id ? (
+                                                isWorker && String(currentBranchId) === String(shipment.destination_branch_id) ? (
                                                     <button
                                                         onClick={() => handleMarkAsTaken(shipment.id)}
                                                         className="inline-flex items-center gap-1.5 px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-lg shadow-sm shadow-green-200 transition-all active:scale-95"
@@ -326,6 +326,9 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                 <ShipmentDetailsModal
                     shipment={selectedShipment}
                     onClose={() => setSelectedShipment(null)}
+                    isWorker={isWorker}
+                    currentBranchId={currentBranchId}
+                    onMarkAsTaken={handleMarkAsTaken}
                 />
             )}
         </div>
