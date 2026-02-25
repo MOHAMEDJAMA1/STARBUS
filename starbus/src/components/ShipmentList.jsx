@@ -34,12 +34,12 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                 });
             }
 
-            // Special Branch Filter (OR origin or destination)
+            // Special Branch Filter (Reception Mode: Only arriving packages)
             if (isWorker) {
                 if (currentBranchId) {
-                    query = query.or(`origin_branch_id.eq.${currentBranchId},destination_branch_id.eq.${currentBranchId}`);
+                    query = query.eq('destination_branch_id', currentBranchId);
                 } else {
-                    // If worker has no branch, they see NO shipments (secure default)
+                    // If worker has no branch, they see NO shipments
                     setShipments([]);
                     setLoading(false);
                     return;

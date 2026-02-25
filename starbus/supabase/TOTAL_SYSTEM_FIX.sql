@@ -74,11 +74,11 @@ BEGIN
     RETURN json_build_object('received', 0, 'taken', 0, 'not_taken', 0);
   END IF;
 
-  -- 1. Total Received (Shipments created AT this branch = Origin)
+  -- 1. Total Received (Shipments arriving AT this branch = Destination)
   SELECT count(*)
   INTO total_received
   FROM public.shipments
-  WHERE (target_branch_id IS NULL OR origin_branch_id = target_branch_id)
+  WHERE (target_branch_id IS NULL OR destination_branch_id = target_branch_id)
   AND (query_date IS NULL OR created_at::date = query_date);
 
   -- 2. Total Taken (Delivered AT this branch = Destination)
@@ -94,7 +94,7 @@ BEGIN
   INTO total_not_taken
   FROM public.shipments
   WHERE (target_branch_id IS NULL OR destination_branch_id = target_branch_id)
-  AND status = 'received' -- In this app, 'received' means reached system, waiting for pickup/delivery.
+  AND status = 'received' 
   AND (query_date IS NULL OR created_at::date = query_date);
 
   RETURN json_build_object(
