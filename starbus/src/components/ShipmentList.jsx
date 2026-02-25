@@ -34,6 +34,11 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                 });
             }
 
+            // Special Branch Filter (OR origin or destination)
+            if (currentBranchId && isWorker) {
+                query = query.or(`origin_branch_id.eq.${currentBranchId},destination_branch_id.eq.${currentBranchId}`);
+            }
+
             // Search
             if (searchTerm) {
                 query = query.or(`tracking_number.ilike.%${searchTerm}%,receiver_name.ilike.%${searchTerm}%,receiver_phone.ilike.%${searchTerm}%`);

@@ -32,9 +32,12 @@ export default function WorkerDashboard({ profile, activeView, onViewChange }) {
     // Note: User asked for Stats "on the side" to show data for the date. 
     // The list can remain "Inventory" focused (current active items) or filtered.
     // For now, let's keep the LIST as "Active Inventory" (no date filter) but STATS as Date Filtered.
+    // Memoize filter filter for ShipmentList
     const branchFilter = useMemo(() => {
-        return profile?.branch_id ? { destination_branch_id: profile.branch_id } : null;
-    }, [profile?.branch_id]);
+        // We pass empty filter here because ShipmentList now handles the OR logic 
+        // using currentBranchId when isWorker is true
+        return {};
+    }, []);
 
     useEffect(() => {
         if (!profile?.branch_id) return;
