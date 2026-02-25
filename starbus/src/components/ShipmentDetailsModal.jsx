@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { X, Package, MapPin, User, Calendar, Truck, FileText, CheckCircle } from 'lucide-react';
 
 
-export default function ShipmentDetailsModal({ shipment, onClose, isWorker, currentBranchId, onMarkAsTaken }) {
+export default function ShipmentDetailsModal({ shipment, onClose, isWorker, currentBranchId, onMarkAsTaken, error, clearError }) {
     const [loading, setLoading] = useState(false);
 
     if (!shipment) return null;
@@ -40,7 +40,10 @@ export default function ShipmentDetailsModal({ shipment, onClose, isWorker, curr
                     </div>
 
                     <button
-                        onClick={onClose}
+                        onClick={() => {
+                            if (clearError) clearError();
+                            onClose();
+                        }}
                         className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full transition-colors"
                     >
                         <X size={24} />
@@ -150,6 +153,17 @@ export default function ShipmentDetailsModal({ shipment, onClose, isWorker, curr
                     </div>
                 </div>
 
+                {/* Error Message inside Modal */}
+                {error && (
+                    <div className="mx-4 sm:mx-6 mb-4 p-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
+                            <span className="font-medium">{error}</span>
+                        </div>
+                        <button onClick={clearError} className="text-red-400 hover:text-red-600 font-bold text-lg leading-none p-1">×</button>
+                    </div>
+                )}
+
                 {/* Footer */}
                 <div className="bg-gray-50 border-t border-gray-100 p-4 sm:p-6 flex flex-col sm:flex-row gap-2 sm:gap-3 sm:justify-end shrink-0">
                     {/* Mark as Taken Button - Visible to all staff/admins for pending shipments */}
@@ -171,7 +185,10 @@ export default function ShipmentDetailsModal({ shipment, onClose, isWorker, curr
                         </button>
                     )}
                     <button
-                        onClick={onClose}
+                        onClick={() => {
+                            if (clearError) clearError();
+                            onClose();
+                        }}
                         className="w-full sm:w-auto px-6 py-3 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-100 transition-colors"
                     >
                         Close

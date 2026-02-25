@@ -104,6 +104,10 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                 .eq('id', id);
 
             if (error) throw error;
+
+            // Force a manual refresh to ensure the UI updates immediately
+            await fetchShipments();
+
             return true; // Success
         } catch (error) {
             console.error('Error updating shipment:', error);
@@ -337,6 +341,8 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                     isWorker={isWorker}
                     currentBranchId={currentBranchId}
                     onMarkAsTaken={handleMarkAsTaken}
+                    error={takenError}
+                    clearError={() => setTakenError(null)}
                 />
             )}
         </div>
