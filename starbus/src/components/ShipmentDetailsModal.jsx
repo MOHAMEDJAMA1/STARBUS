@@ -95,13 +95,14 @@ export default function ShipmentDetailsModal({ shipment, onClose, isWorker, curr
                             </h3>
                             <div className="space-y-3 bg-gray-50 p-5 rounded-xl border border-gray-100">
                                 <div>
-                                    <p className="text-xs text-gray-500 mb-0.5">Name</p>
-                                    <p className="font-bold text-gray-900">{shipment.sender_name}</p>
+                                    <p className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Name</p>
+                                    <p className="text-sm font-bold text-gray-900">{shipment.sender_name}</p>
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-500 mb-0.5">Phone</p>
-                                    <p className="font-medium text-gray-900">{shipment.sender_phone}</p>
+                                    <p className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Phone</p>
+                                    <p className="text-sm font-medium text-gray-900">{shipment.sender_phone}</p>
                                 </div>
+
                             </div>
                         </div>
 
@@ -112,13 +113,14 @@ export default function ShipmentDetailsModal({ shipment, onClose, isWorker, curr
                             </h3>
                             <div className="space-y-3 bg-gray-50 p-5 rounded-xl border border-gray-100">
                                 <div>
-                                    <p className="text-xs text-gray-500 mb-0.5">Name</p>
-                                    <p className="font-bold text-gray-900">{shipment.receiver_name}</p>
+                                    <p className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Name</p>
+                                    <p className="text-sm font-bold text-gray-900">{shipment.receiver_name}</p>
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-500 mb-0.5">Phone</p>
-                                    <p className="font-medium text-gray-900">{shipment.receiver_phone}</p>
+                                    <p className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Phone</p>
+                                    <p className="text-sm font-medium text-gray-900">{shipment.receiver_phone}</p>
                                 </div>
+
                             </div>
                         </div>
 
@@ -149,9 +151,9 @@ export default function ShipmentDetailsModal({ shipment, onClose, isWorker, curr
                 </div>
 
                 {/* Footer */}
-                <div className="bg-gray-50 border-t border-gray-100 p-4 sm:p-6 flex flex-col sm:flex-row gap-3 sm:justify-end shrink-0">
-                    {/* Mark as Taken Button in Modal */}
-                    {shipment.status !== 'delivered' && shipment.status !== 'cancelled' && isWorker && currentBranchId === shipment.destination_branch_id && (
+                <div className="bg-gray-50 border-t border-gray-100 p-4 sm:p-6 flex flex-col sm:flex-row gap-2 sm:gap-3 sm:justify-end shrink-0">
+                    {/* Mark as Taken Button in Modal - Extremely Robust Comparison */}
+                    {shipment.status !== 'delivered' && shipment.status !== 'cancelled' && isWorker && String(currentBranchId || '').trim().toLowerCase() === String(shipment.destination_branch_id || '').trim().toLowerCase() && (
                         <button
                             onClick={async () => {
                                 setLoading(true);
