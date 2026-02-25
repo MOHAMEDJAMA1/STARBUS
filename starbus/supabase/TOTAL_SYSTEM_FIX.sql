@@ -33,12 +33,12 @@ CREATE POLICY "shipments_select_final" ON public.shipments FOR SELECT USING (
     )
 );
 
--- INSERT: Only if origin is your branch or Admin
+-- INSERT: Only if origin/destination is your branch or Admin
 CREATE POLICY "shipments_insert_final" ON public.shipments FOR INSERT WITH CHECK (
     EXISTS (
         SELECT 1 FROM public.profiles 
         WHERE id = auth.uid() 
-        AND (role = 'super_admin' OR branch_id = shipments.origin_branch_id)
+        AND (role = 'super_admin' OR branch_id = shipments.origin_branch_id OR branch_id = shipments.destination_branch_id)
     )
 );
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { User, Phone, MapPin, Calendar, FileText, X, Save, Truck } from 'lucide-react';
+import { User, Phone, MapPin, Calendar, FileText, X, Save, Truck, Clock } from 'lucide-react';
 
 export default function ReceiveShipmentForm({ staffProfile, onSuccess }) {
     const [loading, setLoading] = useState(false);
@@ -11,7 +11,8 @@ export default function ReceiveShipmentForm({ staffProfile, onSuccess }) {
         sender_phone: '',
         receiver_name: '',
         receiver_phone: '',
-        origin_branch_id: '', // New Field: From City (Selectable)
+        origin_branch_id: '',
+        destination_branch_id: '', // Will be locked to staff branch
         description: '',
         delivery_date: '',
     });
@@ -27,10 +28,10 @@ export default function ReceiveShipmentForm({ staffProfile, onSuccess }) {
                 const current = data.find(b => b.id === staffProfile.branch_id);
                 setCurrentBranch(current);
 
-                // Lock Origin to Current Branch
+                // Lock DESTINATION to Current Branch (Arrival Mode)
                 setFormData(prev => ({
                     ...prev,
-                    origin_branch_id: staffProfile.branch_id
+                    destination_branch_id: staffProfile.branch_id
                 }));
             }
         };
@@ -47,11 +48,15 @@ export default function ReceiveShipmentForm({ staffProfile, onSuccess }) {
 
         try {
             console.log(`[ReceiveForm] Attempting to create shipment...`);
-            console.log(`[ReceiveForm] Origin Branch: ${formData.origin_branch_id}`);
-            console.log(`[ReceiveForm] Destination Branch: ${formData.destination_branch_id}`);
+            console.log(`[ReceiveForm] Origin Branch (From): ${formData.origin_branch_id}`);
+            console.log(`[ReceiveForm] Destination Branch (To): ${formData.destination_branch_id}`);
 
-            if (!formData.origin_branch_id || formData.origin_branch_id !== staffProfile.branch_id) {
-                throw new Error(`Invalid Origin Branch. You must be at your assigned branch to register packages.`);
+            if (!formData.destination_branch_id || formData.destination_branch_id !== staffProfile.branch_id) {
+                throw new Error(`Invalid Assignment. Packages must be registered at your assigned branch.`);
+            }
+
+            if (!formData.origin_branch_id) {
+                throw new Error(`Please select an Origin Branch (From City).`);
             }
 
             const { error } = await supabase.from('shipments').insert({
@@ -90,24 +95,24 @@ export default function ReceiveShipmentForm({ staffProfile, onSuccess }) {
                 },
             }).then(({ error: waError }) => {
                 if (waError) {
-                    // Non-blocking: log it but don't fail the user's flow
+                    // Non-blocking
                     console.warn('WhatsApp notification failed (non-critical):', waError.message);
                 } else {
                     console.log('WhatsApp notification sent successfully.');
                 }
             });
 
-            alert(`Shipment Received! Tracking Number: ${trackingNumber}`);
+            alert(`Shipment Registered! Tracking Number: ${trackingNumber}`);
             onSuccess();
-            // Reset form but keep origin locked
-            // Reset form but keep origin selections
+
+            // Reset form but keep destination locked
             setFormData(prev => ({
                 sender_name: '',
                 sender_phone: '',
                 receiver_name: '',
                 receiver_phone: '',
-                origin_branch_id: prev.origin_branch_id, // Keep last selected origin
-                destination_branch_id: '',
+                origin_branch_id: '',
+                destination_branch_id: staffProfile.branch_id,
                 description: '',
                 delivery_date: '',
             }));
@@ -131,7 +136,7 @@ export default function ReceiveShipmentForm({ staffProfile, onSuccess }) {
                     <span>›</span>
                     <span className="text-gray-900 font-bold">Register Arrival</span>
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900">Register Received Package</h2>
+                <h2 className="text-3xl font-bold text-gray-900">Register Incoming Package</h2>
                 <p className="text-gray-500 mt-1">Register a package that has arrived at <span className="font-bold text-gray-900">{currentBranch?.name || 'this branch'}</span>.</p>
             </div>
 
@@ -276,21 +281,12 @@ export default function ReceiveShipmentForm({ staffProfile, onSuccess }) {
                             <label className="block text-sm font-bold text-gray-700 mb-1.5">To City (Destination)</label>
                             <div className="relative">
                                 <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                <select
-                                    name="destination_branch_id"
-                                    value={formData.destination_branch_id}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-transparent focus:bg-white border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all appearance-none font-medium cursor-pointer"
-                                >
-                                    <option value="">Select Destination Branch</option>
-                                    {branches.map(b => (
-                                        <option key={b.id} value={b.id}>{b.name} ({b.location})</option>
-                                    ))}
-                                </select>
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                                </div>
+                                <input
+                                    readOnly
+                                    value={currentBranch?.name || 'Loading...'}
+                                    className="w-full pl-10 pr-4 py-2.5 bg-gray-100 border border-gray-200 rounded-lg text-sm font-bold text-gray-600 focus:outline-none cursor-not-allowed"
+                                />
+                                <input type="hidden" name="destination_branch_id" value={formData.destination_branch_id} />
                             </div>
                         </div>
                         <div>
@@ -325,11 +321,11 @@ export default function ReceiveShipmentForm({ staffProfile, onSuccess }) {
                 <div className="flex justify-end items-center gap-4 pt-4 border-t border-gray-100">
                     <button
                         type="button"
-                        onClick={onSuccess} // Or a separate cancel handler
+                        onClick={onSuccess}
                         className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-gray-500 hover:text-gray-700 bg-white hover:bg-gray-50 rounded-xl transition-colors"
                     >
                         <X size={18} />
-                        Cancel Registration
+                        Cancel
                     </button>
                     <button
                         type="submit"
