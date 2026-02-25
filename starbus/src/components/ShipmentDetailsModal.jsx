@@ -157,9 +157,11 @@ export default function ShipmentDetailsModal({ shipment, onClose, isWorker, curr
                         <button
                             onClick={async () => {
                                 setLoading(true);
-                                await onMarkAsTaken(shipment.id);
+                                const success = await onMarkAsTaken(shipment.id);
                                 setLoading(false);
-                                onClose();
+                                if (success) {
+                                    onClose();
+                                }
                             }}
                             disabled={loading}
                             className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-lg shadow-green-200 transition-all active:scale-95 disabled:opacity-70"

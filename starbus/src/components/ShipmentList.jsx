@@ -104,10 +104,11 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                 .eq('id', id);
 
             if (error) throw error;
-            // Realtime will refresh the list automatically
+            return true; // Success
         } catch (error) {
             console.error('Error updating shipment:', error);
             setTakenError(`Failed to mark as taken: ${error.message}`);
+            return false; // Failure
         }
     };
 
