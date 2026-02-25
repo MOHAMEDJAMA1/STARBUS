@@ -22,6 +22,9 @@ DROP POLICY IF EXISTS "shipments_insert_universal" ON public.shipments;
 DROP POLICY IF EXISTS "shipments_select_strict" ON public.shipments;
 DROP POLICY IF EXISTS "shipments_update_strict" ON public.shipments;
 DROP POLICY IF EXISTS "shipments_insert_strict" ON public.shipments;
+DROP POLICY IF EXISTS "shipments_select_final" ON public.shipments;
+DROP POLICY IF EXISTS "shipments_insert_final" ON public.shipments;
+DROP POLICY IF EXISTS "shipments_update_final" ON public.shipments;
 
 -- 3. APPLY FINAL STRICT POLICIES
 -- SELECT: Only own branch data or Admin
