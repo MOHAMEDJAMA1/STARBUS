@@ -46,6 +46,14 @@ export default function ReceiveShipmentForm({ staffProfile, onSuccess }) {
         const trackingNumber = `STAR-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
 
         try {
+            console.log(`[ReceiveForm] Attempting to create shipment...`);
+            console.log(`[ReceiveForm] Origin Branch: ${formData.origin_branch_id}`);
+            console.log(`[ReceiveForm] Destination Branch: ${formData.destination_branch_id}`);
+
+            if (!formData.origin_branch_id || formData.origin_branch_id !== staffProfile.branch_id) {
+                throw new Error(`Invalid Origin Branch. You must be at your assigned branch to register packages.`);
+            }
+
             const { error } = await supabase.from('shipments').insert({
                 tracking_number: trackingNumber,
                 origin_branch_id: formData.origin_branch_id,
@@ -60,7 +68,12 @@ export default function ReceiveShipmentForm({ staffProfile, onSuccess }) {
                 created_at: new Date().toISOString(),
             });
 
-            if (error) throw error;
+            if (error) {
+                console.error('[ReceiveForm] Database Insert Error:', error);
+                throw error;
+            }
+
+            console.log(`[ReceiveForm] Shipment created successfully: ${trackingNumber}`);
 
             // --- Send WhatsApp Notification ---
             const originBranch = branches.find(b => b.id === formData.origin_branch_id);

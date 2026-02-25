@@ -40,10 +40,11 @@ export default function WorkerDashboard({ profile, activeView, onViewChange }) {
     }, []);
 
     useEffect(() => {
-        if (!profile?.branch_id) return;
-
         const fetchStats = async () => {
-            // Note: We pass query_date to filtering logic
+            if (!profile?.branch_id) return;
+
+            console.log(`[WorkerDash] Fetching stats for Branch: ${profile.branch_id}`);
+
             const { data, error } = await supabase
                 .rpc('get_branch_stats', {
                     target_branch_id: profile.branch_id,
@@ -51,13 +52,18 @@ export default function WorkerDashboard({ profile, activeView, onViewChange }) {
                 });
 
             if (data) {
+                console.log(`[WorkerDash] Stats received:`, data);
                 setStats({
                     received: data.received,
                     pending: data.not_taken,
                     taken: data.taken
                 });
             }
-            if (error) console.error('Error fetching branch stats:', error);
+            if (error) {
+                console.error('[WorkerDash] Error fetching branch stats:', error);
+                // Don't leak fake data if there's an error
+                setStats({ received: 0, pending: 0, taken: 0 });
+            }
         };
 
         fetchStats();
