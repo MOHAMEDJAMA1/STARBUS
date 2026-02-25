@@ -62,8 +62,7 @@ export default function WorkerDashboard({ profile, activeView, onViewChange }) {
 
         fetchStats();
 
-        // Realtime Subscription (Filtered)
-        // Refresh stats on any change, even if date filtered (e.g. if I mark taken today, today's taken stat should go up)
+        // Realtime Subscription (More robust: listen to all changes and filter in callback)
         const subscription = supabase
             .channel(`dashboard-stats-${profile.branch_id}`)
             .on(
@@ -71,11 +70,16 @@ export default function WorkerDashboard({ profile, activeView, onViewChange }) {
                 {
                     event: '*',
                     schema: 'public',
-                    table: 'shipments',
-                    filter: `destination_branch_id=eq.${profile.branch_id}`
+                    table: 'shipments'
                 },
                 (payload) => {
-                    fetchStats();
+                    const { new: newRow, old: oldRow } = payload;
+                    const affectedBranchId = newRow?.destination_branch_id || newRow?.origin_branch_id ||
+                        oldRow?.destination_branch_id || oldRow?.origin_branch_id;
+
+                    if (affectedBranchId === profile.branch_id) {
+                        fetchStats();
+                    }
                 }
             )
             .subscribe();
@@ -83,7 +87,7 @@ export default function WorkerDashboard({ profile, activeView, onViewChange }) {
         return () => {
             subscription.unsubscribe();
         };
-    }, [profile?.branch_id, queryDate]);
+    }, [profile?.branch_id, queryDate, activeView]);
 
     if (!profile) return <div className="p-8 text-center text-gray-500">Loading worker profile...</div>;
 
