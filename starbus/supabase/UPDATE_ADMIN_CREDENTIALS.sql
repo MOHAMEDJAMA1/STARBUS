@@ -20,8 +20,7 @@ BEGIN
 
         -- 3. Update public.profiles (Email)
         UPDATE public.profiles SET 
-            email = 'starbus2026@gmail.com',
-            updated_at = now()
+            email = 'starbus2026@gmail.com'
         WHERE id = admin_id;
 
         RAISE NOTICE 'Admin credentials updated successfully for ID: %', admin_id;
