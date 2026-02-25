@@ -35,8 +35,15 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
             }
 
             // Special Branch Filter (OR origin or destination)
-            if (currentBranchId && isWorker) {
-                query = query.or(`origin_branch_id.eq.${currentBranchId},destination_branch_id.eq.${currentBranchId}`);
+            if (isWorker) {
+                if (currentBranchId) {
+                    query = query.or(`origin_branch_id.eq.${currentBranchId},destination_branch_id.eq.${currentBranchId}`);
+                } else {
+                    // If worker has no branch, they see NO shipments (secure default)
+                    setShipments([]);
+                    setLoading(false);
+                    return;
+                }
             }
 
             // Search

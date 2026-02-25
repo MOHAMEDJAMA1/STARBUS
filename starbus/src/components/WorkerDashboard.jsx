@@ -95,6 +95,27 @@ export default function WorkerDashboard({ profile, activeView, onViewChange }) {
         return <ShipmentList filter={branchFilter} title="Branch Inventory" isWorker={true} currentBranchId={profile?.branch_id} onNewReception={() => onViewChange('receive')} />;
     }
 
+    // Guard: Branch not assigned
+    if (!profile?.branch_id) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8 bg-white rounded-3xl border border-dashed border-gray-200 shadow-sm font-sans uppercase tracking-tight">
+                <div className="w-20 h-20 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                    <Clock size={40} />
+                </div>
+                <h3 className="text-2xl font-black text-gray-900 mb-2">Branch Not Assigned</h3>
+                <p className="text-sm font-bold text-gray-500 max-w-sm mb-8 leading-relaxed">
+                    Your account has been created, but it hasn't been linked to a specific branch yet.
+                    Please contact a Super Admin to assign you to a branch.
+                </p>
+                <div className="flex flex-col gap-3 w-full max-w-xs">
+                    <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 text-[10px] text-gray-400 font-mono break-all font-bold">
+                        User ID: {profile?.id}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     // Default: Worker Overview
     return (
         <div className="space-y-8 font-sans">

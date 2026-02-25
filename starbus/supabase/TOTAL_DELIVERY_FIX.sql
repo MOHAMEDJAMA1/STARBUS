@@ -42,6 +42,19 @@ CREATE POLICY "shipments_select_universal" ON public.shipments
         )
     );
 
--- 5. Final check: grant permissions to authenticated users
+-- 5. Universal INSERT Policy (All staff can create shipments)
+DROP POLICY IF EXISTS "Workers can insert shipments" ON public.shipments;
+DROP POLICY IF EXISTS "shipments_insert_policy" ON public.shipments;
+
+CREATE POLICY "shipments_insert_universal" ON public.shipments
+    FOR INSERT WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.profiles
+            WHERE id = auth.uid() 
+            AND (role = 'branch_worker' OR role = 'super_admin')
+        )
+    );
+
+-- 6. Final check: grant permissions to authenticated users
 GRANT ALL ON TABLE public.shipments TO authenticated;
 GRANT ALL ON TABLE public.profiles TO authenticated;

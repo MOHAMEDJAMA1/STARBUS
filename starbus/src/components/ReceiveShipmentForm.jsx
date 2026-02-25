@@ -123,9 +123,22 @@ export default function ReceiveShipmentForm({ staffProfile, onSuccess }) {
             </div>
 
             {error && (
-                <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 border border-red-100 flex items-center gap-2">
-                    <span className="w-2 h-2 bg-red-600 rounded-full"></span>
+                <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 border border-red-100 flex items-center gap-2 font-bold uppercase tracking-tight text-xs">
+                    <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
                     {error}
+                </div>
+            )}
+
+            {!staffProfile?.branch_id && (
+                <div className="bg-orange-50 text-orange-600 p-6 rounded-xl mb-6 border border-orange-200 flex flex-col gap-2 font-sans uppercase tracking-tight">
+                    <div className="flex items-center gap-2 font-black text-sm">
+                        <Clock size={18} />
+                        Branch Not Assigned
+                    </div>
+                    <p className="text-[10px] font-bold opacity-80 leading-relaxed">
+                        You cannot register packages until an administrator assigns you to a physical branch.
+                        Please contact the main office to link your account.
+                    </p>
                 </div>
             )}
 
@@ -307,8 +320,8 @@ export default function ReceiveShipmentForm({ staffProfile, onSuccess }) {
                     </button>
                     <button
                         type="submit"
-                        disabled={loading}
-                        className="flex items-center gap-2 px-8 py-3 bg-green-500 hover:bg-green-600 text-white text-sm font-bold uppercase tracking-wide rounded-xl shadow-lg shadow-green-500/20 transition-all hover:shadow-xl hover:shadow-green-500/30 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                        disabled={loading || !staffProfile?.branch_id}
+                        className="flex items-center gap-2 px-8 py-3 bg-green-500 hover:bg-green-600 text-white text-sm font-bold uppercase tracking-wide rounded-xl shadow-lg shadow-green-500/20 transition-all hover:shadow-xl hover:shadow-green-500/30 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale"
                     >
                         <Save size={18} />
                         {loading ? 'Processing...' : 'Register Arrival'}

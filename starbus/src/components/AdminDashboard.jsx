@@ -183,7 +183,7 @@ export default function AdminDashboard({ activeView }) {
                             <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
                                 <Box size={22} />
                             </div>
-                            <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">+12%</span>
+                            <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full uppercase tracking-tighter">Real-time</span>
                         </div>
                         <p className="text-gray-500 text-sm font-medium">Total Received</p>
                         <h3 className="text-3xl font-bold text-gray-900 mt-1">{stats.total_received.toLocaleString()}</h3>
@@ -195,7 +195,7 @@ export default function AdminDashboard({ activeView }) {
                             <div className="p-2 bg-green-50 rounded-lg text-green-600">
                                 <Truck size={22} />
                             </div>
-                            <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">+8%</span>
+                            <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full uppercase tracking-tighter">Live</span>
                         </div>
                         <p className="text-gray-500 text-sm font-medium">Total Taken</p>
                         <h3 className="text-3xl font-bold text-gray-900 mt-1">{stats.total_taken.toLocaleString()}</h3>
@@ -207,7 +207,7 @@ export default function AdminDashboard({ activeView }) {
                             <div className="p-2 bg-red-50 rounded-lg text-red-600">
                                 <Clock size={22} />
                             </div>
-                            <span className="text-xs font-semibold text-red-600 bg-red-50 px-2 py-1 rounded-full">-5%</span>
+                            <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-1 rounded-full uppercase tracking-tighter">Pending</span>
                         </div>
                         <p className="text-gray-500 text-sm font-medium">Total Not Taken</p>
                         <h3 className="text-3xl font-bold text-gray-900 mt-1">{stats.total_not_taken.toLocaleString()}</h3>
