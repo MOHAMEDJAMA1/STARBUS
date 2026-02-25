@@ -88,23 +88,23 @@ export default function Dashboard() {
     );
 
     return (
-        <div className="flex h-screen bg-[#F8FAFC] font-sans">
-            {/* Sidebar (Fixed Left) */}
+        <div className="flex h-screen bg-[#F8FAFC] font-sans overflow-hidden">
+            {/* Sidebar */}
             <Sidebar
                 role={profile.role}
                 activeView={activeView}
                 onViewChange={setActiveView}
                 userEmail={user.email}
-                branchName={branchName} // Pass the state variable we fetched
+                branchName={branchName}
             />
 
             {/* Main Content Area */}
-            <main className="flex-1 overflow-auto">
-                <div className="p-8">
-                    {/* Header for Content Area */}
-                    <div className="mb-8 flex justify-between items-center">
+            <main className="flex-1 overflow-auto pt-[60px] lg:pt-0">
+                <div className="p-4 sm:p-6 lg:p-8">
+                    {/* Header */}
+                    <div className="mb-6 flex justify-between items-center">
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900">
+                            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                                 {activeView === 'overview' && 'Dashboard Overview'}
                                 {activeView === 'worker_overview' && 'Dashboard Overview'}
                                 {activeView === 'branches' && 'Branch Management'}
@@ -120,7 +120,6 @@ export default function Dashboard() {
                                 {activeView === 'users' && 'Manage your team and branch access.'}
                             </p>
                         </div>
-                        {/* Right side actions (e.g. notifications) could go here */}
                     </div>
 
                     {/* Dynamic Content */}

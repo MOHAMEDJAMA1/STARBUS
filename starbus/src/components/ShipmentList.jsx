@@ -117,46 +117,70 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
             )}
             {/* Header / Toolbar */}
             <div className="p-6 border-b border-gray-100">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
                     <div>
-                        <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
-                        <p className="text-sm text-gray-500 mt-1">Manage and track product receptions at your branch.</p>
+                        <h3 className="text-lg sm:text-2xl font-bold text-gray-900">{title}</h3>
+                        <p className="text-sm text-gray-500 mt-1 hidden sm:block">Manage and track product receptions at your branch.</p>
                     </div>
-
-                    <div className="flex items-center gap-3">
-                        <button className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
-                            <Filter size={18} />
-                            Advanced Filters
-                        </button>
-
-                        {/* New Reception Button (Worker specific mostly) */}
+                    <div className="flex items-center gap-2">
                         {isWorker && onNewReception && (
                             <button
                                 onClick={onNewReception}
-                                className="flex items-center gap-2 px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white text-sm font-bold rounded-lg shadow-lg shadow-green-500/20 transition-all hover:shadow-xl active:scale-95"
+                                className="flex items-center gap-2 px-3 py-2.5 sm:px-4 bg-green-500 hover:bg-green-600 text-white text-sm font-bold rounded-lg shadow-lg shadow-green-500/20 transition-all active:scale-95"
                             >
                                 <Plus size={18} />
-                                New Reception
+                                <span>New Reception</span>
                             </button>
                         )}
                     </div>
                 </div>
 
                 {/* Search Bar */}
-                <div className="mt-8 relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <div className="mt-4 relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <input
                         type="text"
-                        placeholder="Search by receiver name or phone number (+1 555...)"
+                        placeholder="Search receiver name or phone..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent hover:border-gray-200 focus:bg-white focus:border-green-500 rounded-xl text-base focus:outline-none focus:ring-4 focus:ring-green-500/10 transition-all placeholder-gray-400"
+                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-transparent hover:border-gray-200 focus:bg-white focus:border-green-500 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-green-500/10 transition-all placeholder-gray-400"
                     />
                 </div>
             </div>
 
-            {/* Table */}
-            <div className="overflow-x-auto">
+            {/* Mobile Card View (hidden on md+) */}
+            <div className="md:hidden divide-y divide-gray-100">
+                {loading ? (
+                    <div className="py-10 text-center text-gray-400 text-sm">Loading...</div>
+                ) : shipments.length === 0 ? (
+                    <div className="py-10 text-center text-gray-400 text-sm">No shipments found.</div>
+                ) : shipments.map((shipment) => (
+                    <div key={shipment.id} className="p-4 hover:bg-gray-50 cursor-pointer" onClick={() => setSelectedShipment(shipment)}>
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                            <div>
+                                <p className="font-bold text-gray-900 text-sm">{shipment.receiver_name}</p>
+                                <p className="text-xs text-gray-500">{shipment.receiver_phone}</p>
+                            </div>
+                            <StatusBadge status={shipment.status} />
+                        </div>
+                        <div className="text-xs text-gray-500 flex items-center gap-1 mb-3">
+                            <span>{shipment.origin_branch?.name || '?'}</span>
+                            <span>→</span>
+                            <span>{shipment.destination_branch?.name || '?'}</span>
+                            <span className="ml-auto">{new Date(shipment.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                            <button onClick={() => setSelectedShipment(shipment)} className="flex-1 py-2 text-xs font-bold border border-gray-200 rounded-lg hover:bg-gray-50">View Details</button>
+                            {shipment.status !== 'delivered' && isWorker && currentBranchId === shipment.destination_branch_id && (
+                                <button onClick={() => handleMarkAsTaken(shipment.id)} className="flex-1 py-2 text-xs font-bold bg-green-500 hover:bg-green-600 text-white rounded-lg active:scale-95 transition-all">Mark as Taken</button>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Desktop Table View (hidden on mobile) */}
+            <div className="hidden md:block overflow-x-auto">
                 <table className="w-full">
                     <thead className="bg-gray-50 border-b border-gray-100">
                         <tr>
