@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Search, ChevronLeft, ChevronRight, Filter, Package, Check, Plus, Eye, Truck } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Filter, Package, Check, Plus, Eye, Truck, Trash2 } from 'lucide-react';
 import ShipmentDetailsModal from './ShipmentDetailsModal';
 
 const EMPTY_FILTER = {};
