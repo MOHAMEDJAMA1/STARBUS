@@ -15,6 +15,7 @@ export default function ReceiveShipmentForm({ staffProfile, onSuccess }) {
         destination_branch_id: '', // Will be locked to staff branch
         description: '',
         delivery_date: '',
+        bus_number: '',
     });
     const [error, setError] = useState(null);
 
@@ -48,8 +49,6 @@ export default function ReceiveShipmentForm({ staffProfile, onSuccess }) {
 
         try {
             console.log(`[ReceiveForm] Attempting to create shipment...`);
-            console.log(`[ReceiveForm] Origin Branch (From): ${formData.origin_branch_id}`);
-            console.log(`[ReceiveForm] Destination Branch (To): ${formData.destination_branch_id}`);
 
             if (!formData.destination_branch_id || formData.destination_branch_id !== staffProfile.branch_id) {
                 throw new Error(`Invalid Assignment. Packages must be registered at your assigned branch.`);
@@ -68,6 +67,7 @@ export default function ReceiveShipmentForm({ staffProfile, onSuccess }) {
                 receiver_name: formData.receiver_name,
                 receiver_phone: formData.receiver_phone,
                 description: formData.description,
+                bus_number: formData.bus_number,
                 received_by: staffProfile.id,
                 status: 'received',
                 created_at: new Date().toISOString(),
@@ -92,10 +92,10 @@ export default function ReceiveShipmentForm({ staffProfile, onSuccess }) {
                     tracking_number: trackingNumber,
                     origin_branch: originBranch?.name || 'Unknown',
                     destination_branch: destBranch?.name || 'Unknown',
+                    bus_number: formData.bus_number,
                 },
             }).then(({ error: waError }) => {
                 if (waError) {
-                    // Non-blocking
                     console.warn('WhatsApp notification failed (non-critical):', waError.message);
                 } else {
                     console.log('WhatsApp notification sent successfully.');
@@ -115,6 +115,7 @@ export default function ReceiveShipmentForm({ staffProfile, onSuccess }) {
                 destination_branch_id: staffProfile.branch_id,
                 description: '',
                 delivery_date: '',
+                bus_number: '',
             }));
         } catch (err) {
             setError(err.message);
@@ -255,7 +256,7 @@ export default function ReceiveShipmentForm({ staffProfile, onSuccess }) {
                         <h3>Route & Logistics</h3>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                         <div>
                             <label className="block text-sm font-bold text-gray-700 mb-1.5">From City (Origin)</label>
                             <div className="relative">
@@ -287,6 +288,20 @@ export default function ReceiveShipmentForm({ staffProfile, onSuccess }) {
                                     className="w-full pl-10 pr-4 py-2.5 bg-gray-100 border border-gray-200 rounded-lg text-sm font-bold text-gray-600 focus:outline-none cursor-not-allowed"
                                 />
                                 <input type="hidden" name="destination_branch_id" value={formData.destination_branch_id} />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-1.5">Bus Number</label>
+                            <div className="relative">
+                                <Truck className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                <input
+                                    name="bus_number"
+                                    value={formData.bus_number}
+                                    onChange={handleChange}
+                                    required
+                                    placeholder="Enter Bus #"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-transparent focus:bg-white border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all font-medium"
+                                />
                             </div>
                         </div>
                         <div>

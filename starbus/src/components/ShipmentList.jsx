@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Search, ChevronLeft, ChevronRight, Filter, Package, Check, Plus, Eye } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Filter, Package, Check, Plus, Eye, Truck } from 'lucide-react';
 import ShipmentDetailsModal from './ShipmentDetailsModal';
 
 const EMPTY_FILTER = {};
@@ -48,7 +48,7 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
 
             // Search
             if (searchTerm) {
-                query = query.or(`tracking_number.ilike.%${searchTerm}%,receiver_name.ilike.%${searchTerm}%,receiver_phone.ilike.%${searchTerm}%`);
+                query = query.or(`tracking_number.ilike.%${searchTerm}%,receiver_name.ilike.%${searchTerm}%,receiver_phone.ilike.%${searchTerm}%,bus_number.ilike.%${searchTerm}%`);
             }
 
             // Pagination
@@ -61,7 +61,7 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
 
             if (error) throw error;
 
-            setShipments(data);
+            setShipments(data || []);
             if (count) setTotalPages(Math.ceil(count / pageSize));
         } catch (error) {
             console.error('Error fetching shipments:', error);
@@ -86,7 +86,6 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                     table: 'shipments'
                 },
                 (payload) => {
-                    // console.log('Change received!', payload);
                     setRefreshTrigger(prev => prev + 1);
                 }
             )
@@ -157,7 +156,7 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <input
                         type="text"
-                        placeholder="Search receiver name or phone..."
+                        placeholder="Search receiver, phone or bus #..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-transparent hover:border-gray-200 focus:bg-white focus:border-green-500 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-green-500/10 transition-all placeholder-gray-400"
@@ -179,6 +178,13 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                                 <p className="text-xs text-gray-500">{shipment.receiver_phone}</p>
                             </div>
                             <StatusBadge status={shipment.status} />
+                        </div>
+                        <div className="flex items-center gap-2 mb-2">
+                            {shipment.bus_number && (
+                                <span className="px-2 py-0.5 bg-green-50 text-green-700 text-[10px] font-bold rounded flex items-center gap-1 border border-green-100">
+                                    <Truck size={10} /> BUS: {shipment.bus_number}
+                                </span>
+                            )}
                         </div>
                         <div className="text-xs text-gray-500 flex items-center gap-1 mb-3">
                             <span>{shipment.origin_branch?.name || '?'}</span>
@@ -211,6 +217,7 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                             <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">Sender</th>
                             <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">Receiver</th>
                             <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">From / To</th>
+                            <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">Bus #</th>
                             <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">Date</th>
                             <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">Status</th>
                             <th className="px-6 py-4 text-right text-[11px] font-bold text-gray-400 uppercase tracking-wider">Action</th>
@@ -219,7 +226,7 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                     <tbody className="divide-y divide-gray-100">
                         {loading ? (
                             <tr>
-                                <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                                <td colSpan="7" className="px-6 py-12 text-center text-gray-500">
                                     <div className="flex justify-center items-center gap-2">
                                         <div className="w-5 h-5 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
                                         <span>Loading shipments...</span>
@@ -228,7 +235,7 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                             </tr>
                         ) : shipments.length === 0 ? (
                             <tr>
-                                <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                                <td colSpan="7" className="px-6 py-12 text-center text-gray-500">
                                     No shipments found.
                                 </td>
                             </tr>
@@ -237,9 +244,8 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                                 <tr
                                     key={shipment.id}
                                     className="group hover:bg-gray-50/50 transition-colors cursor-pointer"
-                                    onClick={() => setSelectedShipment(shipment)} // Row click opens modal
+                                    onClick={() => setSelectedShipment(shipment)}
                                 >
-                                    {/* Sender */}
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-500">
@@ -247,18 +253,13 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                                             </div>
                                             <div>
                                                 <p className="font-bold text-gray-900 text-sm">{shipment.sender_name}</p>
-                                                {/* Hidden or secondary info if needed */}
                                             </div>
                                         </div>
                                     </td>
-
-                                    {/* Receiver */}
                                     <td className="px-6 py-4">
                                         <div className="font-bold text-gray-900 text-sm">{shipment.receiver_name}</div>
                                         <div className="text-xs text-gray-500 mt-0.5">{shipment.receiver_phone}</div>
                                     </td>
-
-                                    {/* Route */}
                                     <td className="px-6 py-4 text-sm text-gray-600">
                                         <div className="flex items-center gap-2">
                                             <span className="font-medium text-gray-900">{shipment.origin_branch?.name || 'Unknown'}</span>
@@ -266,25 +267,25 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                                             <span className="font-medium text-gray-900">{shipment.destination_branch?.name || 'Unknown'}</span>
                                         </div>
                                     </td>
-
-                                    {/* Date */}
-                                    <td className="px-6 py-4 text-sm text-gray-500 font-medium">
+                                    <td className="px-6 py-4">
+                                        {shipment.bus_number ? (
+                                            <span className="px-2 py-1 bg-green-50 text-green-700 text-[10px] font-bold rounded-lg border border-green-100 flex items-center gap-1 w-fit">
+                                                <Truck size={12} /> {shipment.bus_number}
+                                            </span>
+                                        ) : (
+                                            <span className="text-gray-300">—</span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4 text-sm text-gray-500 font-medium whitespace-nowrap">
                                         {new Date(shipment.created_at).toLocaleDateString('en-US', {
                                             month: 'short', day: 'numeric', year: 'numeric'
                                         })}
                                     </td>
-
-                                    {/* Status */}
                                     <td className="px-6 py-4">
                                         <StatusBadge status={shipment.status} />
                                     </td>
-
-                                    {/* Action */}
                                     <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                                        {/* Stop prop ensures button click doesn't trigger row click logic if they conflict, though row opens modal anyway */}
-
                                         <div className="flex items-center justify-end gap-2">
-                                            {/* Details Button */}
                                             <button
                                                 onClick={() => setSelectedShipment(shipment)}
                                                 className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -292,21 +293,15 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                                             >
                                                 <Eye size={18} />
                                             </button>
-
-                                            {/* Mark Taken Button */}
                                             {shipment.status !== 'delivered' && shipment.status !== 'cancelled' ? (
                                                 isWorker ? (
                                                     <button
                                                         onClick={() => handleMarkAsTaken(shipment.id)}
-                                                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-lg shadow-sm shadow-green-200 transition-all active:scale-95"
+                                                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-lg shadow-sm shadow-green-200 transition-all active:scale-95 whitespace-nowrap"
                                                     >
                                                         Mark as Taken
                                                     </button>
-                                                ) : (
-                                                    <span className="text-xs text-gray-400 font-medium hidden">
-                                                        View Only
-                                                    </span>
-                                                )
+                                                ) : null
                                             ) : null}
                                         </div>
                                     </td>
@@ -366,7 +361,7 @@ function StatusBadge({ status }) {
 
     const labels = {
         delivered: 'Taken',
-        pending: 'Not Taken', // Or Pending
+        pending: 'Not Taken',
         received: 'In Transit',
         cancelled: 'Cancelled'
     };

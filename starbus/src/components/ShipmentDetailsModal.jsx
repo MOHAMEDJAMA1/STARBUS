@@ -141,6 +141,15 @@ export default function ShipmentDetailsModal({ shipment, onClose, isWorker, curr
                                     <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Created At</p>
                                     <p className="text-sm font-medium text-gray-900">{formatDate(shipment.created_at)}</p>
                                 </div>
+                                {shipment.bus_number && (
+                                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                        <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Bus Number</p>
+                                        <p className="text-sm font-bold text-green-600 flex items-center gap-2">
+                                            <Truck size={14} />
+                                            {shipment.bus_number}
+                                        </p>
+                                    </div>
+                                )}
                                 {shipment.description && (
                                     <div className="col-span-1 sm:col-span-2 bg-gray-50 p-4 rounded-xl border border-gray-100">
                                         <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Description / Notes</p>
