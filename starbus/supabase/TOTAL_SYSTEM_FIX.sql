@@ -25,6 +25,7 @@ DROP POLICY IF EXISTS "shipments_insert_strict" ON public.shipments;
 DROP POLICY IF EXISTS "shipments_select_final" ON public.shipments;
 DROP POLICY IF EXISTS "shipments_insert_final" ON public.shipments;
 DROP POLICY IF EXISTS "shipments_update_final" ON public.shipments;
+DROP POLICY IF EXISTS "shipments_delete_final" ON public.shipments;
 
 -- 3. APPLY FINAL STRICT POLICIES
 -- SELECT: Only own branch data or Admin
@@ -47,6 +48,15 @@ CREATE POLICY "shipments_insert_final" ON public.shipments FOR INSERT WITH CHECK
 
 -- UPDATE: Only if origin/destination is your branch or Admin
 CREATE POLICY "shipments_update_final" ON public.shipments FOR UPDATE USING (
+    EXISTS (
+        SELECT 1 FROM public.profiles 
+        WHERE id = auth.uid() 
+        AND (role = 'super_admin' OR branch_id = shipments.origin_branch_id OR branch_id = shipments.destination_branch_id)
+    )
+);
+
+-- DELETE: Only if origin/destination is your branch or Admin
+CREATE POLICY "shipments_delete_final" ON public.shipments FOR DELETE USING (
     EXISTS (
         SELECT 1 FROM public.profiles 
         WHERE id = auth.uid() 

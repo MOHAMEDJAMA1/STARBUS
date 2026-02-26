@@ -171,7 +171,7 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                 ) : shipments.length === 0 ? (
                     <div className="py-10 text-center text-gray-400 text-sm">No shipments found.</div>
                 ) : shipments.map((shipment) => (
-                    <div key={shipment.id} className="p-4 hover:bg-gray-50 cursor-pointer" onClick={() => setSelectedShipment(shipment)}>
+                    <div key={shipment.id} className="p-3 sm:p-4 hover:bg-gray-50 cursor-pointer" onClick={() => setSelectedShipment(shipment)}>
                         <div className="flex items-start justify-between gap-2 mb-2">
                             <div>
                                 <p className="font-bold text-gray-900 text-sm">{shipment.receiver_name}</p>
@@ -313,9 +313,11 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
             </div>
 
             {/* Pagination Footer */}
-            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-white">
-                <span className="text-sm text-gray-500">
-                    Showing page <span className="font-bold text-gray-900">{page}</span> of <span className="font-bold text-gray-900">{totalPages}</span>
+            <div className="px-4 sm:px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-white shrink-0">
+                <span className="text-xs sm:text-sm text-gray-500">
+                    <span className="hidden sm:inline">Showing page </span>
+                    <span className="sm:hidden">Pg </span>
+                    <span className="font-bold text-gray-900">{page}</span> of <span className="font-bold text-gray-900">{totalPages}</span>
                 </span>
                 <div className="flex gap-2">
                     <button
