@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { X, Package, MapPin, User, Calendar, Truck, FileText, CheckCircle, Trash2, AlertTriangle } from 'lucide-react';
 
 
-export default function ShipmentDetailsModal({ shipment, onClose, isWorker, currentBranchId, onMarkAsTaken, error, clearError }) {
+export default function ShipmentDetailsModal({ shipment, onClose, isWorker, currentBranchId, onMarkAsTaken, onDeleteSuccess, error, clearError }) {
     const [loading, setLoading] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
@@ -25,13 +25,18 @@ export default function ShipmentDetailsModal({ shipment, onClose, isWorker, curr
     const handleDelete = async () => {
         setDeleteLoading(true);
         try {
-            const { error } = await supabase
+            const { error: deleteError } = await supabase
                 .from('shipments')
                 .delete()
                 .eq('id', shipment.id);
 
-            if (error) throw error;
-            onClose();
+            if (deleteError) throw deleteError;
+
+            if (onDeleteSuccess) {
+                onDeleteSuccess();
+            } else {
+                onClose();
+            }
         } catch (err) {
             console.error('Error deleting shipment:', err);
             alert('Failed to delete shipment: ' + err.message);
@@ -41,23 +46,23 @@ export default function ShipmentDetailsModal({ shipment, onClose, isWorker, curr
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-sm animate-fade-in shadow-2xl">
             <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-scale-up font-sans flex flex-col max-h-[95vh] relative">
 
                 {/* Confirm Delete Overlay */}
                 {showDeleteConfirm && (
                     <div className="absolute inset-0 z-[60] bg-white/95 backdrop-blur-md flex items-center justify-center p-6 text-center animate-fade-in">
-                        <div className="max-w-xs scale-in">
+                        <div className="max-w-xs animate-scale-up">
                             <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <AlertTriangle size={32} />
                             </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Delivery?</h3>
-                            <p className="text-sm text-gray-500 mb-6">This action cannot be undone. Are you sure you want to remove this shipment?</p>
-                            <div className="flex flex-col gap-2">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2 font-sans">Delete Delivery?</h3>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">This action cannot be undone. Are you sure you want to remove this shipment?</p>
+                            <div className="flex flex-col gap-2 font-sans">
                                 <button
                                     onClick={handleDelete}
                                     disabled={deleteLoading}
-                                    className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all active:scale-95 disabled:opacity-50"
+                                    className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-red-200"
                                 >
                                     {deleteLoading ? 'Deleting...' : 'Yes, Delete Delivery'}
                                 </button>
@@ -81,7 +86,7 @@ export default function ShipmentDetailsModal({ shipment, onClose, isWorker, curr
                                 <Package size={24} className="hidden sm:block" />
                             </div>
                             <div className="min-w-0">
-                                <h2 className="text-lg sm:text-xl font-bold text-gray-900 leading-none truncate">Shipment Details</h2>
+                                <h2 className="text-lg sm:text-xl font-bold text-gray-900 leading-none truncate font-sans">Shipment Details</h2>
                                 <p className="text-[10px] sm:text-sm text-gray-500 mt-1 font-mono tracking-wide truncate">{shipment.tracking_number}</p>
                             </div>
                         </div>
@@ -226,16 +231,14 @@ export default function ShipmentDetailsModal({ shipment, onClose, isWorker, curr
                 {/* Footer Buttons */}
                 <div className="bg-gray-50 border-t border-gray-100 p-4 sm:p-6 flex flex-col sm:flex-row gap-2 sm:gap-3 sm:justify-end shrink-0">
 
-                    {/* Delete Button - Visible if not delivered */}
-                    {shipment.status !== 'delivered' && (
-                        <button
-                            onClick={() => setShowDeleteConfirm(true)}
-                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-white border border-red-200 text-red-600 font-bold rounded-xl hover:bg-red-50 transition-all active:scale-95"
-                        >
-                            <Trash2 size={18} />
-                            Delete
-                        </button>
-                    )}
+                    {/* ALWAYS VISIBLE Delete Button (Gone Forever Policy) */}
+                    <button
+                        onClick={() => setShowDeleteConfirm(true)}
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-4 sm:py-3 bg-white border-2 border-red-100 text-red-600 font-bold rounded-xl hover:bg-red-50 hover:border-red-200 transition-all active:scale-95 shadow-sm"
+                    >
+                        <Trash2 size={18} />
+                        Delete Forever
+                    </button>
 
                     {/* Mark as Taken Button */}
                     {shipment.status !== 'delivered' && shipment.status !== 'cancelled' && isWorker && (
@@ -249,7 +252,7 @@ export default function ShipmentDetailsModal({ shipment, onClose, isWorker, curr
                                 }
                             }}
                             disabled={loading}
-                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-lg shadow-green-200 transition-all active:scale-95 disabled:opacity-70"
+                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-4 sm:py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-lg shadow-green-200 transition-all active:scale-95 disabled:opacity-70"
                         >
                             <CheckCircle size={18} />
                             {loading ? 'Updating...' : 'Mark as Taken'}
@@ -261,7 +264,7 @@ export default function ShipmentDetailsModal({ shipment, onClose, isWorker, curr
                             if (clearError) clearError();
                             onClose();
                         }}
-                        className="w-full sm:w-auto px-6 py-3 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-100 transition-colors"
+                        className="w-full sm:w-auto px-6 py-4 sm:py-3 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-100 transition-colors"
                     >
                         Close
                     </button>

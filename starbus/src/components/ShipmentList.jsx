@@ -204,6 +204,12 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                                     <Check size={16} /> Mark as Taken
                                 </button>
                             )}
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setSelectedShipment(shipment); /* Modal will handle delete confirm */ }}
+                                className="w-full sm:w-auto p-2.5 text-red-500 hover:bg-red-50 rounded-lg flex items-center justify-center gap-2 text-xs font-bold border border-red-100 sm:border-none"
+                            >
+                                <Trash2 size={16} /> Delete
+                            </button>
                         </div>
                     </div>
                 ))}
@@ -303,6 +309,13 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                                                     </button>
                                                 ) : null
                                             ) : null}
+                                            <button
+                                                onClick={() => setSelectedShipment(shipment)}
+                                                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                title="Delete Shipment"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -345,6 +358,10 @@ export default function ShipmentList({ filter = EMPTY_FILTER, title = "Search & 
                     isWorker={isWorker}
                     currentBranchId={currentBranchId}
                     onMarkAsTaken={handleMarkAsTaken}
+                    onDeleteSuccess={() => {
+                        setSelectedShipment(null);
+                        fetchShipments();
+                    }}
                     error={takenError}
                     clearError={() => setTakenError(null)}
                 />
